@@ -1,20 +1,23 @@
-﻿using System.ComponentModel;
+﻿using System;
 using System.Threading.Tasks;
 
 namespace FlappyBird.Web.Models
 {
-    public class GameManager : INotifyPropertyChanged
+    public class GameManager
     {
         private readonly int _gravity = 2;
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event EventHandler MainLoopCompleted;
 
-        public BirdModel Bird { get; set; }
-        public bool IsRunning { get; set; } = false;
+        public BirdModel Bird { get; private set; }
+
+        public PipeModel Pipe { get; private set; }
+        public bool IsRunning { get; private set; } = false;
 
         public GameManager()
         {
             Bird = new BirdModel();
+            Pipe = new PipeModel();
         }
 
         public async void MainLoop()
@@ -22,14 +25,15 @@ namespace FlappyBird.Web.Models
             IsRunning = true;
             while(IsRunning)
             {
-                Bird.Fall(2);
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Bird)));
+                Bird.Fall(_gravity);
+                Pipe.Move();
 
                 if (Bird.DistanceFromGround <= 0)
                 {
                     GameOver();
                 }
 
+                MainLoopCompleted?.Invoke(this, EventArgs.Empty);
                 await Task.Delay(20);
             }
         }
